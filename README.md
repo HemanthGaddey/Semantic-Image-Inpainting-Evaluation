@@ -1,17 +1,30 @@
 # Semantic Image Inpainting Evaluation
+### Title:
+Semantic Image Inpainting Evaluation: Classifying Generated Images from actual Image Inputs
+
+### Objective/ Motivation:
+To train a image inpainting model on cat's and dog's dataset and create a dataset containing original and generated images, later use these dataset to train a CNN model for classifying between generated and original images. The motivation behind doing this project is to help people or machines to identify if the image is authentic or forged/generated.
+
+#### Link to github repo: 
+click here for [github repo](https://github.com/HemanthGaddey/Semantic-Image-Inpainting-Evaluation)
+click here for [preprocessed cat and dog datasets](https://drive.google.com/drive/folders/1M-4GTagjHYEWEhQdSvcwe-krvHWASuC3?usp=sharing)
+
+### Prerequisites to run:
+Download the folders and paste them in root directory | link: [google drive](https://drive.google.com/drive/folders/1nWcmNXBWeEIBP9lScZD4IWOWTYxPJqsp?usp=drive_link)
 
 ### Tasks:
 #### Phase 1:
-1.  Fix Dependency Issues
-2.  Understand the paper and extensive codebase:
+1.  Understand the reference papers and extensive codebase and Fix Dependency Issues
 2.  Refactor Code and Rewrite TDANet
 3.  Start Training TDANet
-4.  Write the Pipeline for CNN Classifier using SwinTransformer and ResNext model and ensemble
-5.  Curate and preprocess the OxfordPets Dataset into a suitable format for training:
+4.  Curate and preprocess the OxfordPets Dataset into a suitable format for training:
     a.  Convert Captions to appropriate format
     b.  Write Code for Generating random Masks for Images
     c.  Generate Masks for all the training images
     d.  Create an index file for image dataset with train/val/test splits
+5.  Write the Pipeline for CNN Classifier using SwinTransformer and ResNext model and ensemble
+
+the sample dataset made for training the classifier looks like [this](https://drive.google.com/drive/folders/1JRzKZlFbOVTTbPnbP18Yf_nKaGJd7mzX?usp=sharing)
 
 #### Phase 2:
 1.  create GUI (For using the CNN model, not the inpainting one)
@@ -21,9 +34,6 @@
 4.  Work on a GAN based classifier to more accurately classify using the above described datasets.
 4.  Update the entire codebase to support latest library dependencies.
 
-### Prerequisites to run:
-Download the folders and paste them in root directory | link: [google drive](https://drive.google.com/drive/folders/1nWcmNXBWeEIBP9lScZD4IWOWTYxPJqsp?usp=sharing)
-
 ### How to train:
 1.  Use pyenv to create a virtual environment with python3.6,
 2.  Run the training code and for each 'module not found' error install the module using pip18(default) and the exact version we've written in requirements.txt [please do not run 'pip install -r requirements.txt']
@@ -32,21 +42,20 @@ Download the folders and paste them in root directory | link: [google drive](htt
 Run the jupyter notebook
 
 ## TDANet:
-[paper](https://arxiv.org/pdf/2004.03212.pdf)
 ![TDANet Structure](tdanet_structure.png "TDANet Structure")
 ### Encoder part:
 1. A text-guided dual attention model is proposed to complete image with the guidance of descriptive text. The combination of text and image provides richer semantics than only using the corrupted image.
 
 2. TDANet takes masked image Im and text input T and outputs the inpainted image Ig. In the Encoder part it contains 3 parts, image encoder, text encoder and Dual multimodal Attention part.For the Image encoder we used a 7-layer ResNet from which the outputs of last layer(vl, high-level features) are passed on to the inpainting path while the weights of second last layer(vl, lower-level features) are subsequently passed to the Upsampling networks. The auxiliary part is used only during training  and all the models in auxiliary path share same weights as those in inpainting path except for the fusion network.
 
-4. The masked image 'Ic'(the removed portion of the imput image) and image with mask 'Im'(the image with black pixels where the mask is applied) is fed to a 7-layer ResNet for generating the feature maps of them, the top layer is taken as high-level representation vh'(for Ic)/vh(for Im) the output of the second last layer is used as low-level representation vl'(for Ic)/vl(for Im). For the text encoder we used a pre-trained GRU network(hidden size 256) which computes the word representation twrd and the sentence representation tsent.
+4. The masked image 'Ic'(the removed portion of the imput image) and image with mask 'Im'(the image with black pixels where the mask is applied) is fed to a 7-layer Residual Block Network for generating the feature maps of them, the top layer is taken as high-level representation vh'(for Ic)/vh(for Im) the output of the second last layer is used as low-level representation vl'(for Ic)/vl(for Im). For the text encoder we used a pre-trained GRU network(hidden size 256) which computes the word representation twrd and the sentence representation tsent.
 
 5. In the auxiliary path the input is vh', while training the network learns which words in the description is similar to the masked image(this is called positive attention) because the key information about the missing region only exists in a subset of words and then softmax is applied to the attention scores generated and those attention score are done weighted sum with the text desciption for generating final text encodings te'.
 
 6. In the inpainting path the input is vh, while training the network learns which words in the description is similar to the parts of the image other than the masked region(this is called negative attention), the attention score generated are multiplied with '-1' and are used for weighted sum with the text description, then global maxpool operation is done and finally generates text encodings te, this helps to know which words are less similar to the masked image
 
 ### Decoder Part:
-1.  A multimodal hidden feature, h, is created by combining the phrase representation from the GRU network and the high level image representation from a 7-layer Residual Block Network. This feature is then fed into a fusion network, F, which is a 5-layer Residual block network with spectral normalization in each layer. Projecting the features onto a latent space, the fusion network assumes that the latent space has a Gaussian distribution with mean μ and variance σ.
+1.  A multimodal hidden feature, h, is created by combining the phrase representation from the GRU network and the high level image representation from a 7-layer ResNet. This feature is then fed into a fusion network, F, which is a 5-layer Residual block network with spectral normalization in each layer. Projecting the features onto a latent space, the fusion network assumes that the latent space has a Gaussian distribution with mean μ and variance σ.
 
 2.  Currently, on the auxiliary path, the fusion network F' has different trainable weights than the one on the inpainting path (F), in contrast to the Image Encoder, up-sampling network, or discriminator network. This is carried out because h and h' have distinct properties.
 
@@ -70,12 +79,11 @@ Then we train this model on the bird dataset( which includes authentic images an
 
 ### Individual contribution:
 ### Hemanth:
-Worked on creating all models related to the dual attention mechanism (the encoder part) as well as the upsampling network. Rewrote major parts of TDANet code and did major code refactoring and wrote the code for training. Worked on fixing dependency issues. Worked on GUI also which is still in process as all of us followed a parallel approach for this project.
+Worked on writing code for the models related to the dual attention mechanism (the encoder part). Did major codebase refactoring and wrote the code for training(training.py) and the jupyter notebook. Worked on fixing dependency issues. Worked on GUI also which is still in process as all of us followed a parallel approach for this project.
 
 ### Chaitanya:
-Worked on running the code on google cloud.
-Worked on The fusion network and discriminator network (the decoder part).
-Testing the model and generate the required dataset (from CUB-200-201) for CNN classifier for getting pre trained weights for transfer learning (without freezing layers).
+Worked on The writing code for the fusion network and discriminator network (the decoder part).
+Testing the TDAnet model and generate the required dataset (from CUB-200-201) for training classifier and get pre trained weights and use it for transfer learning (without freezing layers) on Oxford pets dataset.
 
 ### Deva Surya Prasad:
-Worked on creating the CNN pipeline and trained the model using SwinTransformer and ResNextModel and used the birds dataset prepared and preprocess the pets dataset. Most of his work is scheduled for phase 2.
+Worked on creating the CNN pipeline for Resnet and Swin Transformer and preprocess the Oxford pets dataset from Hugging face into the format necessary for the inpainting model.
