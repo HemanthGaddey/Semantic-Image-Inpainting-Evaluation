@@ -10,7 +10,7 @@ click here for [github repo](https://github.com/HemanthGaddey/Semantic-Image-Inp
 click here for [preprocessed cat and dog datasets](https://drive.google.com/drive/folders/1M-4GTagjHYEWEhQdSvcwe-krvHWASuC3?usp=sharing)
 
 ### Prerequisites to run:
-Download the folders and paste them in root directory | link: [google drive][https://drive.google.com/drive/folders1nWcmNXBWeEIBP9lScZD4IWOWTYxPJqsp?usp=sharing]
+Download the folders and paste them in root directory | link: [google drive](https://drive.google.com/drive/folders/1nWcmNXBWeEIBP9lScZD4IWOWTYxPJqsp?usp=drive_link)
 
 ### Tasks:
 #### Phase 1:
@@ -25,8 +25,6 @@ Download the folders and paste them in root directory | link: [google drive][htt
 5.  Write the Pipeline for CNN Classifier using SwinTransformer and ResNext model and ensemble
 
 the sample dataset made for training the classifier looks like [this](https://drive.google.com/drive/folders/1JRzKZlFbOVTTbPnbP18Yf_nKaGJd7mzX?usp=sharing)
-
-
 
 #### Phase 2:
 1.  create GUI (For using the CNN model, not the inpainting one)
@@ -43,32 +41,36 @@ the sample dataset made for training the classifier looks like [this](https://dr
 4.  We've uploaded the virtual environment to google drive: (Created on Arch Linux).
 Run the jupyter notebook
 
-### TDANet:
+## TDANet:
+![TDANet Structure](tdanet_structure.png "TDANet Structure")
+### Encoder part:
 1. A text-guided dual attention model is proposed to complete image with the guidance of descriptive text. The combination of text and image provides richer semantics than only using the corrupted image.
-2. TDAnet takes masked input 'Im', description 'T' and gives output image 'Ig'
-3. TDAnet architecture has encoder for image and text, dual multimodal attention(here the positive and negative attention on the text description happens parallely), and Inpainting generation.
-4. The masked image 'Ic'(the removed portion of teh imput image) and image with mask 'Im'(it is the image with black pixels where the mask is applied) is fed to ResNet9 for generating the feature maps of them, the top layer is taken as high-level representation vh'(for Ic)/vh(for Im) the output of the second last layer is used as low-level features vl'(for Ic)/vl(for Im).
-5. In the auxiliary path the input is vh', while training the network learns which words in the description is similar to the masked image(this is called positive attention) because the key information about the missing region only exists in a subset of words and then softmax is applied to the attention scores generated and those attention score are done weighted sum with the text desciption for generating final text encodings te'
+
+2. TDANet takes masked image Im and text input T and outputs the inpainted image Ig. In the Encoder part it contains 3 parts, image encoder, text encoder and Dual multimodal Attention part.For the Image encoder we used a 7-layer ResNet from which the outputs of last layer(vl, high-level features) are passed on to the inpainting path while the weights of second last layer(vl, lower-level features) are subsequently passed to the Upsampling networks. The auxiliary part is used only during training  and all the models in auxiliary path share same weights as those in inpainting path except for the fusion network.
+
+4. The masked image 'Ic'(the removed portion of the imput image) and image with mask 'Im'(the image with black pixels where the mask is applied) is fed to a 7-layer Residual Block Network for generating the feature maps of them, the top layer is taken as high-level representation vh'(for Ic)/vh(for Im) the output of the second last layer is used as low-level representation vl'(for Ic)/vl(for Im). For the text encoder we used a pre-trained GRU network(hidden size 256) which computes the word representation twrd and the sentence representation tsent.
+
+5. In the auxiliary path the input is vh', while training the network learns which words in the description is similar to the masked image(this is called positive attention) because the key information about the missing region only exists in a subset of words and then softmax is applied to the attention scores generated and those attention score are done weighted sum with the text desciption for generating final text encodings te'.
+
 6. In the inpainting path the input is vh, while training the network learns which words in the description is similar to the parts of the image other than the masked region(this is called negative attention), the attention score generated are multiplied with '-1' and are used for weighted sum with the text description, then global maxpool operation is done and finally generates text encodings te, this helps to know which words are less similar to the masked image
 
 ### Decoder Part:
-A multimodal hidden feature, h, is created by combining the phrase representation from the GRU network and the high level image representation from a 7-layer ResNet. This feature is then fed into a fusion network, F, which is a 5-layer Residual block network with spectral normalization in each layer. Projecting the features onto a latent space, the fusion network assumes that the latent space has a Gaussian distribution with mean μ and variance σ.
+1.  A multimodal hidden feature, h, is created by combining the phrase representation from the GRU network and the high level image representation from a 7-layer ResNet. This feature is then fed into a fusion network, F, which is a 5-layer Residual block network with spectral normalization in each layer. Projecting the features onto a latent space, the fusion network assumes that the latent space has a Gaussian distribution with mean μ and variance σ.
 
-Currently, on the auxiliary path, the fusion network F' has different trainable weights than the one on the inpainting path (F), in contrast to the Image Encoder, up-sampling network, or discriminator network. This is carried out because h and h' have distinct properties.
+2.  Currently, on the auxiliary path, the fusion network F' has different trainable weights than the one on the inpainting path (F), in contrast to the Image Encoder, up-sampling network, or discriminator network. This is carried out because h and h' have distinct properties.
 
-In the inpainting step, we now sample latent variables from the distribution (the previously derived gaussian distribution) and combine with h to create r, a multimodal representation. This guarantees variation in the output of the generator.
+3.  In the inpainting step, we now sample latent variables from the distribution (the previously derived gaussian distribution) and combine with h to create r, a multimodal representation. This guarantees variation in the output of the generator.
 $$r = h+Gaussian(μ,σ)$$
 
-We also use the previously obtained distribution to produce r' in the Auxiliary path. However, since this distribution differs and we need the final multimodal representation to be homogeneous in both paths to obtain identical images, we include h from the inpainting path here.
+4.  We also use the previously obtained distribution to produce r' in the Auxiliary path. However, since this distribution differs and we need the final multimodal representation to be homogeneous in both paths to obtain identical images, we include h from the inpainting path here.
 $$r' = h+Gaussian(μ',σ')$$
 
-In both approaches, the multimodal representations r and r' are ultimately delivered to the Generator networks (up-sampling networks) with identical weights.
+5.  In both approaches, the multimodal representations r and r' are ultimately delivered to the Generator networks (up-sampling networks) with identical weights.
 
-The generator networks are 5 layer Residual networks. Five layer residual networks make up the generator networks. We feed the intermediate level image representation from the original image (vl, from the last second layer of the Image Encoder network, since we don't need to predict the rest of the area) and the multimodal representation r (to predict the masked region) with a short+long term attention to the generator in the inpainting path. The goal of this short- and long-term focus is to guarantee accurate reconstruction of the image's unmasked regions. By using a self-attention network, the network basically determines the weightmap between encoder and decoder features and then
-weights and sums these feature maps. The generator concatenates the weighted feature maps and reconstructs the unmasked areas.
+6.  The generator networks are 5 layer Residual networks. Five layer residual networks make up the generator networks. We feed the intermediate level image representation from the original image (vl, from the last second layer of the Image Encoder network, since we don't need to predict the rest of the area) and the multimodal representation r (to predict the masked region) with a short+long term attention to the generator in the inpainting path. The goal of this short- and long-term focus is to guarantee accurate reconstruction of the image's unmasked regions. By using a self-attention network, the network basically determines the weightmap between encoder and decoder features and then weights and sums these feature maps. The generator concatenates the weighted feature maps and reconstructs the unmasked areas.
 
 ### Training:
-The inpainting model is still training and currently 228 epochs are done. We aim to train till 2000 epochs for generating good inpainted images for pets.
+The inpainting model is still training and currently 228 epochs are done. We aim to train till 2000 epochs for generating good inpainted images for pets. The results and the loss values for each epoch are present in 'result' directory in the github repo.
 
 ### CNN:
 We used Swin Transformer and ResNext101 for training the CNN classifier, the entire complete code for which is pushed to github repo. We plan to ensemble these two models via stacking.
@@ -77,7 +79,7 @@ Then we train this model on the bird dataset( which includes authentic images an
 
 ### Individual contribution:
 ### Hemanth:
-Worked on creating models related to the dual attention mechanism (the encoder part). Rewrote major parts of TDANet code and did major code refactoring and wrote the code for training. Worked on fixing dependency issues. Worked on GUI also which is still in process as all of us followed a parallel approach for this project.
+Worked on writing code for the models related to the dual attention mechanism (the encoder part). Did major codebase refactoring and wrote the code for training(training.py) and the jupyter notebook. Worked on fixing dependency issues. Worked on GUI also which is still in process as all of us followed a parallel approach for this project.
 
 ### Chaitanya:
 Worked on The writing code for the fusion network and discriminator network (the decoder part).
