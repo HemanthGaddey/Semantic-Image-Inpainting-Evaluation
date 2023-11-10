@@ -1,0 +1,51 @@
+--------------Options--------------
+batchSize: 10
+checkpoints_dir: ./checkpoints
+continue_train: False
+detach_embedding: False
+display_freq: 100
+display_id: 1
+display_port: 8097
+display_single_pane_ncols: 0
+display_winsize: 256
+dynamic_sigma: False
+fineSize: [256, 256]
+gan_mode: lsgan
+gpu_ids: 0
+img_file: ./datasets/CUB_200_2011/train.flist
+isTrain: True
+iter_count: 1
+lambda_gan: 1.0
+lambda_gen_l1: 20.0
+lambda_kl: 20.0
+lambda_match: 0.1
+lambda_rec_l1: 20.0
+loadSize: [266, 266]
+lr: 0.0001
+lr_policy: lambda
+mask_file: ./datasets/CUB_200_2011/train_mask.flist
+mask_type: [0, 1, 2, 3]
+model: tdanet
+nThreads: 8
+name: tda_bird
+niter: 5000000
+niter_decay: 0
+no_augment: False
+no_flip: False
+no_html: False
+no_maxpooling: False
+no_rotation: False
+no_shuffle: False
+output_scale: 4
+print_freq: 100
+prior_alpha: 0.8
+prior_beta: 8
+resize_or_crop: resize_and_crop
+save_iters_freq: 10000
+save_latest_freq: 1000
+text_config: config.bird.yml
+train_paths: two
+update_language: False
+valid_file: /data/dataset/valid
+which_iter: latest
+----------------End----------------
