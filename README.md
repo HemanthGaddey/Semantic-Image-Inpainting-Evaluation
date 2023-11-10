@@ -80,7 +80,7 @@ Then we train this model on the bird dataset( which includes authentic images an
 
 ### Individual contribution:
 ### Hemanth:
-Worked on writing code for the models related to the dual attention mechanism (the encoder part). Did major codebase refactoring and wrote the code for training(training.py) and the jupyter notebook. Worked on fixing dependency issues. Worked on GUI also which is still in process as all of us followed a parallel approach for this project.
+Worked on writing code for the models related to the dual attention mechanism (the encoder part). Did major TDANet Code refactoring and wrote the code for training(training.py) and the jupyter notebook. Worked on fixing dependency issues. Worked on GUI also which is still in process as all of us followed a parallel approach for this project.
 
 ### Chaitanya:
 Worked on The writing code for the fusion network and discriminator network (the decoder part).
