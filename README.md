@@ -82,8 +82,7 @@ Then we train this model on the bird dataset( which includes authentic images an
 Worked on writing code for the models related to the dual attention mechanism (the encoder part). Did major codebase refactoring and wrote the code for training(training.py) and the jupyter notebook. Worked on fixing dependency issues. Worked on GUI also which is still in process as all of us followed a parallel approach for this project.
 
 ### Chaitanya:
-Worked on The writing code for the fusion network and discriminator network (the decoder part).
-Testing the TDAnet model and generate the required dataset (from CUB-200-201) for training classifier and get pre trained weights and use it for transfer learning (without freezing layers) on Oxford pets dataset.
+Worked on The writing code for the fusion network and discriminator network (the decoder part). Testing the TDAnet model and generate the required dataset (from CUB-200-201) to train the classifier for getting pre trained weights and use it for transfer learning (without freezing layers) on Oxford pets dataset.
 
 ### Deva Surya Prasad:
 Worked on creating the CNN pipeline for Resnet and Swin Transformer and preprocess the Oxford pets dataset from Hugging face into the format necessary for the inpainting model.
