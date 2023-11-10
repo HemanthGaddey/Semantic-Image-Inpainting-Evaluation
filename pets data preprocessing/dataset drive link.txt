@@ -1,0 +1,5 @@
+Link from where we downloaded the data:
+https://huggingface.co/datasets/Multimodal-Fatima/OxfordPets_test_facebook_opt_125m_Attributes_Caption_ns_3669
+
+Link where the preprocessed datasets are saved:
+https://drive.google.com/drive/folders/1M-4GTagjHYEWEhQdSvcwe-krvHWASuC3?usp=sharing
