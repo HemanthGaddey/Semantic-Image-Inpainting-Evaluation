@@ -6,8 +6,12 @@ Semantic Image Inpainting Evaluation: Classifying Generated Images from actual I
 To train a image inpainting model on cat's and dog's dataset and create a dataset containing original and generated images, later use these dataset to train a CNN model for classifying between generated and original images. The motivation behind doing this project is to help people or machines to identify if the image is authentic or forged/generated.
 
 #### Link to github repo: 
-click here for [github repo](https://github.com/HemanthGaddey/Semantic-Image-Inpainting-Evaluation)
-click here for [preprocessed cat and dog datasets](https://drive.google.com/drive/folders/1M-4GTagjHYEWEhQdSvcwe-krvHWASuC3?usp=sharing)
+click here for [github repo](https://github.com/HemanthGaddey/Semantic-Image-Inpainting-Evaluation)  
+
+click here for [preprocessed cat and dog datasets](https://drive.google.com/drive/folders/1M-4GTagjHYEWEhQdSvcwe-krvHWASuC3?usp=sharing)  
+
+click here for [data we used to train the classifier with CUB data](https://drive.google.com/drive/folders/1V87cFxiDhDB7bgEtWFPu2AlEeSYsx664?usp=sharing)
+
 
 ### Prerequisites to run:
 Download the folders and paste them in root directory | link: [google drive](https://drive.google.com/drive/folders/1nWcmNXBWeEIBP9lScZD4IWOWTYxPJqsp?usp=drive_link)
@@ -22,17 +26,16 @@ Download the folders and paste them in root directory | link: [google drive](htt
     b.  Write Code for Generating random Masks for Images
     c.  Generate Masks for all the training images
     d.  Create an index file for image dataset with train/val/test splits
-5.  Write the Pipeline for CNN Classifier using SwinTransformer and ResNext model and ensemble
 
 the sample dataset made for training the classifier looks like [this](https://drive.google.com/drive/folders/1JRzKZlFbOVTTbPnbP18Yf_nKaGJd7mzX?usp=sharing)
 
 #### Phase 2:
-1.  create GUI (For using the CNN model, not the inpainting one)
-2.  Generate inpainted images using script written in phase 1 but for cats.<br>
+1.  Write the Pipeline for CNN Classifier using SwinTransformer and ResNext model and ensemble
+2.  create GUI (For using the CNN model, not the inpainting one)
+3.  Generate inpainted images using script written in phase 1 but for cats.<br>
     -> If Model doesn't converge: Use bird dataset created in phase 1 along with a small dataset on IIT Bhilai surroundings to train the CNN.
-3.  Train and Fine Tune the CNN model (Use transfer learning) on both bird dataset(done) and pets dataset(to be generated).
-4.  Work on a GAN based classifier to more accurately classify using the above described datasets.
-4.  Update the entire codebase to support latest library dependencies.
+4.  Train and Fine Tune the CNN model (Use transfer learning) on both bird dataset(done) and pets dataset(to be generated).
+5.  Update the entire codebase to support latest library dependencies.
 
 ### How to train:
 1.  Use pyenv to create a virtual environment with python3.6,
@@ -77,13 +80,32 @@ The inpainting model is still training and currently 228 epochs are done. We aim
 We used Swin Transformer and ResNext101 for training the CNN classifier, the entire complete code for which is pushed to github repo. We plan to ensemble these two models via stacking.
 Then we train this model on the bird dataset( which includes authentic images and inpainted examples using all ~10k images in CUB datasets which we created and uploaded to google drive, the link of which is given in github).
 
+## Results of classifier:
+The ResNet34 model gave the best results in classifying the real images from the fake images from the other models we trained like the ResneXt101,Swin transformer, Neural Architecture Search method
+
+#### The logs of the ResNet34 model training is -
+![results](two.png "progress")
+
+#### accuracy graph -  
+
+![results](one.png "accuracy")
+
+##### the best accuracy we achieved on test data is 63%  
+
+#### lossgraph - 
+
+![results](three.png "loss")
+
+#### results of TDANet using pretrained weights in removing the badminton net in hostel
+![results](three.png "loss")
 
 ### Individual contribution:
-### Hemanth:
-Worked on writing code for the models related to the dual attention mechanism (the encoder part). Did major TDANet Code refactoring and wrote the code for training(training.py) and the jupyter notebook. Worked on fixing dependency issues. Worked on GUI also which is still in process as all of us followed a parallel approach for this project.
+### Gaddey Hemanth Chowdary:
+Worked on writing code for the models related to the dual attention mechanism and the encoders. Did bugfixing and . Did major TDANet Code refactoring and wrote the code for training using custom options(both train_custom.ipynb and train.py) and trained the model on OxfordPetsDataset (Ran it for upto 230 epochs and it was not converging so we resorted to using the CUB bird's dataset model only), then wrote the code for fine tuning of Swin Transformer and ResNext101's ensemble part using RandomForest and SVC, but they didn't have good accuracies. Worked on fixing dependency issues. 
 
-### Chaitanya:
-Worked on writing the code for the fusion network and discriminator network (the decoder part). Testing the TDAnet model and generate the required dataset (from CUB-200-201) to train the classifier and get pre trained weights and use it for transfer learning (without freezing layers) on Oxford pets dataset. 
+### Anumula Chaitanya Sai:
+Worked on writing the code for the fusion network and discriminator network (the decoder part), wrote the initial part of train_custom.ipynb for training TDANet on custom data. Testing the TDAnet model and wrote code(check.py) to generate the required dataset of 12000 images (6000 fake images + 6000 inpainted images) where we have to generate mask, caption for a image, used this dataset to train the classifier. Worked on creating and fine tuning the classifier with EfficientNetB4 model and using Neural Architecture Search which gave accuracy near to our ResNet34 model. 
 
 ### Deva Surya Prasad:
-Worked on creating the CNN pipeline for Resnet and Swin Transformer and preprocess the Oxford pets dataset from Hugging face into the format necessary for the inpainting model.please view the git hub repo for the code and other explanations. 
+Worked on creating the CNN pipeline for Resnet34, ResneXt101 and Swin Transformer and preprocess the Oxford pets dataset from Hugging face into the format necessary for the inpainting model.please view the git hub repo for the code and other explanations. Trained and fine tuned the CNNs for various dataset sizes(2000 images, 4000 images and 13000 images dataset). Optimized faster Automated image Generation from TDAnet model.
+
