@@ -1,20 +1,32 @@
 import time
+import os
 from options.train_options import TrainOptions
 from dataloader.data_loader import dataloader
-from model import create_model
-from util.visualizer import Visualizer
+#from model import create_model
+from model.tdanet_model import TDAnet
+from custom_options import Options
+
+def print_current_errors(log_name, epoch, i, errors, t):
+    message = '(epoch: %d, iters: %d, time: %.3f) ' % (epoch, i, t)
+    for k, v in errors.items():
+        message += '%s: %.3f ' % (k, v)
+
+    print(message)
+    with open(log_name, "a") as log_file:
+        log_file.write('%s\n' % message)
 
 if __name__ == '__main__':
     # get training options
-    opt = TrainOptions().parse()
+    opt = opt=Options(name='tda_bird',model="tdanet",mask_type=[0,1,2,3],img_file='./datasets/CUB_200_2011/train.flist',mask_file='./datasets/CUB_200_2011/train_mask.flist',text_config='config.bird.yml') #TRAINING OPTIONS, CHANGE FOR TESTING!!!
+#TrainOptions().parse()
+    #initialize the log file
+    log_name = os.path.join(opt.checkpoints_dir, opt.name, 'loss_log.txt')
     # create a dataset
-    dataset = dataloader(opt)
+    dataset = dataloader(opt) 
     dataset_size = len(dataset) * opt.batchSize
     print('training images = %d' % dataset_size)
     # create a model
-    model = create_model(opt)
-    # create a visualizer
-    visualizer = Visualizer(opt)
+    model = TDAnet(opt)
     # training flag
     keep_training = True
     max_iteration = opt.niter+opt.niter_decay
@@ -31,21 +43,19 @@ if __name__ == '__main__':
             dataset.epoch = epoch - 1
             iter_start_time = time.time()
             total_iteration += 1
-            model.set_input(data)
+            model.set_input(input=data)
             model.optimize_parameters()
 
-            # display images on visdom and save images
-            if total_iteration % opt.display_freq == 0:
-                visualizer.display_current_results(model.get_current_visuals(), model.get_current_text(), epoch)
-                visualizer.plot_current_distribution(model.get_current_dis())
+            #Start Logging
+            with open(log_name, "a") as log_file:
+                now = time.strftime("%c")
+                log_file.write('================ Training Loss (%s) ================\n' % now)
 
             # print training loss and save logging information to the disk
             if total_iteration % opt.print_freq == 0:
                 losses = model.get_current_errors()
                 t = (time.time() - iter_start_time) / opt.batchSize
-                visualizer.print_current_errors(epoch, total_iteration, losses, t)
-                if opt.display_id > 0:
-                    visualizer.plot_current_errors(total_iteration, losses)
+                print_current_errors(log_name, epoch, total_iteration, losses, t)
 
             # save the latest model every <save_latest_freq> iterations to the disk
             if total_iteration % opt.save_latest_freq == 0:
